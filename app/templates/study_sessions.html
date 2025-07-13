@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="study-sessions-container">
+    <h1>Study Sessions</h1>
+    
+    <!-- Start New Session Form -->
+    <div class="start-session-form">
+        <h2>Start New Study Session</h2>
+        <form method="POST" action="{{ url_for('main.start_session') }}">
+            <div class="form-group">
+                <label for="subject">Subject</label>
+                <select name="subject" id="subject" required>
+                    <option value="IT01">IT01 - Programming Fundamentals</option>
+                    <option value="IT02">IT02 - Database Management</option>
+                    <option value="IT03">IT03 - Web Development</option>
+                    <option value="IT04">IT04 - Cybersecurity</option>
+                    <option value="IT05">IT05 - Cloud Computing</option>
+                    <option value="IT06">IT06 - Artificial Intelligence</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="duration">Duration (minutes)</label>
+                <select name="duration" id="duration" required>
+                    <option value="25">25 (Pomodoro)</option>
+                    <option value="45">45</option>
+                    <option value="60">60</option>
+                    <option value="90">90</option>
+                    <option value="120">120</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="goals">Session Goals</label>
+                <textarea name="goals" id="goals" rows="3" placeholder="What do you want to achieve in this session?"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Start Session</button>
+        </form>
+    </div>
+
+    <!-- Active Session (if any) -->
+    {% for session in sessions %}
+        {% if session.status == 'active' %}
+        <div class="active-session">
+            <h2>Active Session</h2>
+            <div class="session-card active">
+                <div class="session-header">
+                    <h3>{{ session.subject }}</h3>
+                    <span class="session-time">Started: {{ session.start_time.strftime('%H:%M') }}</span>
+                </div>
+                {% if session.goals %}
+                <p class="session-goals">Goals: {{ session.goals }}</p>
+                {% endif %}
+                <div class="session-timer" data-duration="{{ session.duration }}">
+                    <span id="timer">{{ session.duration }}:00</span>
+                </div>
+                <form method="POST" action="{{ url_for('main.end_session', session_id=session.id) }}">
+                    <button type="submit" class="btn btn-danger">End Session</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    {% endfor %}
+
+    <!-- Past Sessions -->
+    <div class="past-sessions">
+        <h2>Past Sessions</h2>
+        {% for session in sessions %}
+            {% if session.status == 'completed' %}
+            <div class="session-card">
+                <div class="session-header">
+                    <h3>{{ session.subject }}</h3>
+                    <span class="session-date">{{ session.start_time.strftime('%Y-%m-%d %H:%M') }}</span>
+                </div>
+                {% if session.goals %}
+                <p class="session-goals">Goals: {{ session.goals }}</p>
+                {% endif %}
+                <div class="session-details">
+                    <span>Duration: {{ session.duration }} minutes</span>
+                    {% if session.end_time %}
+                    <span>Completed: {{ session.end_time.strftime('%H:%M') }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="no-sessions">
+                <p>No past study sessions. Start your first session above!</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.study-sessions-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.start-session-form {
+    background-color: #f5f5f5;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+select, textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+}
+
+textarea {
+    resize: vertical;
+}
+
+.active-session {
+    margin-bottom: 30px;
+}
+
+.session-card {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.session-card.active {
+    border: 2px solid #28a745;
+    background-color: #f8fff9;
+}
+
+.session-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.session-time, .session-date {
+    color: #666;
+    font-size: 0.9em;
+}
+
+.session-goals {
+    color: #666;
+    margin: 10px 0;
+    font-style: italic;
+}
+
+.session-timer {
+    font-size: 2em;
+    text-align: center;
+    margin: 20px 0;
+    color: #28a745;
+}
+
+.session-details {
+    display: flex;
+    justify-content: space-between;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+    width: 100%;
+}
+
+.no-sessions {
+    text-align: center;
+    color: #666;
+    padding: 40px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Timer functionality for active session
+    const timerElement = document.getElementById('timer');
+    if (timerElement) {
+        const sessionCard = timerElement.closest('.session-card');
+        const duration = parseInt(sessionCard.querySelector('.session-timer').dataset.duration);
+        let minutes = duration;
+        let seconds = 0;
+        
+        const updateTimer = () => {
+            if (seconds > 0) {
+                seconds--;
+            } else if (minutes > 0) {
+                minutes--;
+                seconds = 59;
+            }
+            
+            timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (minutes === 0 && seconds === 0) {
+                alert('Study session completed!');
+                // Optional: automatically submit the end session form
+                sessionCard.querySelector('form').submit();
+            }
+        };
+        
+        setInterval(updateTimer, 1000);
+    }
+});
+</script>
+{% endblock %} 

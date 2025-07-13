@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="tasks-container">
+    <h1>Tasks</h1>
+    
+    <!-- Add Task Form -->
+    <div class="add-task-form">
+        <form method="POST" action="/tasks">
+            <input type="text" name="title" placeholder="Task title" required>
+            <textarea name="description" placeholder="Task description"></textarea>
+            <input type="text" name="due_date" placeholder="dd/mm/yyyy">
+            <select name="priority">
+                <option value="High Priority">High Priority</option>
+                <option value="Medium Priority">Medium Priority</option>
+                <option value="Low Priority">Low Priority</option>
+            </select>
+            <button type="submit">Add Task</button>
+        </form>
+    </div>
+
+    <!-- Tasks List -->
+    <div class="tasks-list">
+        {% for task in tasks %}
+        <div class="task-card {% if task.completed %}completed{% endif %}">
+            <div class="task-header">
+                <h3>{{ task.title }}</h3>
+                <span class="priority-badge {{ task.priority }}">{{ task.priority }}</span>
+            </div>
+            <p class="task-description">{{ task.description }}</p>
+            <div class="task-footer">
+                <span class="due-date">Due: {{ task.due_date.strftime('%Y-%m-%d') }}</span>
+                <div class="task-actions">
+                    <form method="POST" action="{{ url_for('main.toggle_task', task_id=task.id) }}" style="display: inline;">
+                        <button type="submit" class="btn btn-success">Mark Complete</button>
+                    </form>
+                    <form method="POST" action="{{ url_for('main.delete_task', task_id=task.id) }}" style="display: inline;">
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="no-tasks">
+            <p>No tasks yet. Add your first task above!</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.tasks-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.add-task-form {
+    background-color: #f5f5f5;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.add-task-form form {
+    display: grid;
+    gap: 10px;
+}
+
+.task-card {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.task-card.completed {
+    background-color: #f8f9fa;
+    border-color: #e9ecef;
+}
+
+.task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.priority-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    text-transform: uppercase;
+}
+
+.priority-badge.high {
+    background-color: #dc3545;
+    color: white;
+}
+
+.priority-badge.medium {
+    background-color: #ffc107;
+    color: black;
+}
+
+.priority-badge.low {
+    background-color: #28a745;
+    color: white;
+}
+
+.task-description {
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.task-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.due-date {
+    color: #666;
+    font-size: 0.9em;
+}
+
+.task-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.no-tasks {
+    text-align: center;
+    color: #666;
+    padding: 40px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+</style>
+{% endblock %} 

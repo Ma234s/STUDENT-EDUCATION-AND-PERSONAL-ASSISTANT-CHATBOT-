@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Tasks{% endblock %}
+
+{% block styles %}
+<style>
+    .tasks-container {
+        display: grid;
+        gap: 20px;
+    }
+
+    .task-card {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px var(--shadow-color);
+    }
+
+    .task-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .add-task-btn {
+        padding: 10px 20px;
+        background: var(--button-bg);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .task-list {
+        display: grid;
+        gap: 15px;
+    }
+
+    .task-item {
+        background: var(--background-color);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .task-info {
+        flex: 1;
+    }
+
+    .task-title {
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 5px;
+    }
+
+    .task-due {
+        font-size: 0.9em;
+        color: var(--accent-color);
+    }
+
+    .task-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .task-action-btn {
+        padding: 5px 10px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        background: var(--button-bg);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="tasks-container">
+    <div class="task-header">
+        <h1>Tasks</h1>
+        <button class="add-task-btn">+ Add Task</button>
+    </div>
+
+    <div class="task-list">
+        {% for task in tasks %}
+        <div class="task-item">
+            <div class="task-info">
+                <div class="task-title">{{ task.title }}</div>
+                <div class="task-due">Due: {{ task.due_date.strftime('%B %d, %Y') if task.due_date else 'No due date' }}</div>
+            </div>
+            <div class="task-actions">
+                <button class="task-action-btn">Edit</button>
+                <button class="task-action-btn">Complete</button>
+            </div>
+        </div>
+        {% else %}
+        <div class="task-item">
+            <div class="task-info">
+                <div class="task-title">No tasks yet</div>
+                <div class="task-due">Add your first task to get started!</div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 

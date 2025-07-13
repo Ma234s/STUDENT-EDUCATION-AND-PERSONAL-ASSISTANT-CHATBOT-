@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="schedule-container">
+    <h1>Study Schedule</h1>
+
+    <!-- Add Schedule Form -->
+    <div class="add-schedule-form">
+        <h2>Add New Study Session</h2>
+        <form method="POST" action="{{ url_for('main.add_schedule') }}">
+            <div class="form-group">
+                <label for="subject_code">Subject</label>
+                <select name="subject_code" id="subject_code" required>
+                    <option value="IT01">IT01 - Programming Fundamentals</option>
+                    <option value="IT02">IT02 - Database Management</option>
+                    <option value="IT03">IT03 - Web Development</option>
+                    <option value="IT04">IT04 - Cybersecurity</option>
+                    <option value="IT05">IT05 - Cloud Computing</option>
+                    <option value="IT06">IT06 - Artificial Intelligence</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="day_of_week">Day</label>
+                <select name="day_of_week" id="day_of_week" required>
+                    <option value="Monday">Monday</option>
+                    <option value="Tuesday">Tuesday</option>
+                    <option value="Wednesday">Wednesday</option>
+                    <option value="Thursday">Thursday</option>
+                    <option value="Friday">Friday</option>
+                    <option value="Saturday">Saturday</option>
+                    <option value="Sunday">Sunday</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="start_time">Start Time</label>
+                    <input type="time" name="start_time" id="start_time" required>
+                </div>
+                <div class="form-group">
+                    <label for="end_time">End Time</label>
+                    <input type="time" name="end_time" id="end_time" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="topic">Topic (Optional)</label>
+                <input type="text" name="topic" id="topic" placeholder="e.g., Arrays and Lists">
+            </div>
+            <div class="form-group">
+                <label for="location">Location</label>
+                <input type="text" name="location" id="location" placeholder="e.g., Library, Room 101, Online">
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" name="is_recurring" checked>
+                    Recurring weekly
+                </label>
+            </div>
+            <button type="submit" class="btn btn-primary">Add to Schedule</button>
+        </form>
+    </div>
+
+    <!-- Weekly Schedule View -->
+    <div class="weekly-schedule">
+        <h2>Weekly Schedule</h2>
+        <div class="schedule-grid">
+            <div class="time-column">
+                <div class="time-header">Time</div>
+                {% for hour in range(8, 22) %}
+                <div class="time-slot">
+                    {{ "%02d:00"|format(hour) }}
+                </div>
+                {% endfor %}
+            </div>
+            {% for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] %}
+            <div class="day-column">
+                <div class="day-header">{{ day }}</div>
+                {% for hour in range(8, 22) %}
+                <div class="time-slot" data-day="{{ day }}" data-hour="{{ hour }}">
+                    {% for schedule in schedules %}
+                        {% if schedule.day_of_week == day and schedule.start_time.hour == hour %}
+                        <div class="schedule-item" style="background-color: {{ subject_colors[schedule.subject_code] }}">
+                            <div class="schedule-subject">{{ schedule.subject_code }}</div>
+                            <div class="schedule-time">
+                                {{ schedule.start_time.strftime('%H:%M') }} - {{ schedule.end_time.strftime('%H:%M') }}
+                            </div>
+                            {% if schedule.topic %}
+                            <div class="schedule-topic">{{ schedule.topic }}</div>
+                            {% endif %}
+                            <div class="schedule-location">{{ schedule.location }}</div>
+                            <form method="POST" action="{{ url_for('main.delete_schedule', schedule_id=schedule.id) }}" class="delete-form">
+                                <button type="submit" class="btn-delete">×</button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Color coding for subjects
+    const subjectColors = {
+        'IT01': '#FFE0E0', // Light red
+        'IT02': '#E0FFE0', // Light green
+        'IT03': '#E0E0FF', // Light blue
+        'IT04': '#FFE0FF', // Light purple
+        'IT05': '#FFFFE0', // Light yellow
+        'IT06': '#E0FFFF'  // Light cyan
+    };
+
+    // Apply colors to schedule items
+    document.querySelectorAll('.schedule-item').forEach(item => {
+        const subjectCode = item.querySelector('.schedule-subject').textContent;
+        item.style.backgroundColor = subjectColors[subjectCode] || '#E9ECEF';
+    });
+
+    // Handle schedule deletion
+    document.querySelectorAll('.delete-form').forEach(form => {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const scheduleItem = this.closest('.schedule-item');
+            
+            // Start fade out animation
+            scheduleItem.style.opacity = '0';
+            scheduleItem.style.transform = 'scale(0.95)';
+            
+            try {
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Failed to delete schedule');
+                
+                // Remove the item after animation
+                setTimeout(() => {
+                    scheduleItem.remove();
+                }, 300);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                // Restore the item if deletion failed
+                scheduleItem.style.opacity = '1';
+                scheduleItem.style.transform = 'scale(1)';
+                alert('Failed to delete schedule. Please try again.');
+            }
+        });
+    });
+
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const startTime = document.getElementById('start_time').value;
+        const endTime = document.getElementById('end_time').value;
+        
+        if (startTime >= endTime) {
+            e.preventDefault();
+            alert('End time must be after start time');
+        }
+    });
+});
+</script>
+
+<style>
+.schedule-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.add-schedule-form {
+    background-color: #f5f5f5;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+}
+
+.weekly-schedule {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow-x: auto;
+}
+
+.schedule-grid {
+    display: flex;
+    min-width: 800px;
+}
+
+.time-column, .day-column {
+    flex: 1;
+    min-width: 120px;
+}
+
+.time-header, .day-header {
+    background-color: #f8f9fa;
+    padding: 10px;
+    text-align: center;
+    font-weight: bold;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.time-slot {
+    height: 60px;
+    border-bottom: 1px solid #dee2e6;
+    padding: 5px;
+    position: relative;
+}
+
+.schedule-item {
+    position: absolute;
+    left: 5px;
+    right: 5px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    padding: 5px;
+    font-size: 0.8em;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    opacity: 1;
+    transform: scale(1);
+}
+
+.schedule-item:hover {
+    transform: scale(1.02);
+    z-index: 100;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.schedule-item.deleting {
+    opacity: 0;
+    transform: scale(0.95);
+}
+
+.schedule-subject {
+    font-weight: bold;
+}
+
+.schedule-time {
+    font-size: 0.9em;
+    color: #495057;
+}
+
+.schedule-topic {
+    font-style: italic;
+    margin-top: 2px;
+}
+
+.schedule-location {
+    font-size: 0.9em;
+    color: #6c757d;
+}
+
+.btn-delete {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: none;
+    border: none;
+    color: #dc3545;
+    font-size: 1.2em;
+    cursor: pointer;
+    padding: 0 5px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.schedule-item:hover .btn-delete {
+    opacity: 1;
+}
+
+select, input[type="time"], input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+}
+
+.btn-primary {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-primary:hover {
+    background-color: #5a6268;
+}
+</style>
+{% endblock %} 

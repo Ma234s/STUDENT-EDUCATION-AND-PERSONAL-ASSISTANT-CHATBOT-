@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 text-center">
+        <h1 class="display-4 mb-4">Welcome to Naira</h1>
+        <p class="lead mb-5">Your AI-powered educational assistant and productivity manager.</p>
+        
+        {% if not current_user.is_authenticated %}
+            <div class="d-grid gap-3 d-sm-flex justify-content-sm-center mb-5">
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg px-4">Login</a>
+                <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary btn-lg px-4">Register</a>
+            </div>
+        {% endif %}
+        
+        <div class="row mt-5">
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Academic Support</h5>
+                        <p class="card-text">Get help with your studies, homework, and research through intelligent conversations.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Task Management</h5>
+                        <p class="card-text">Stay organized with smart task tracking and deadline reminders.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Study Analytics</h5>
+                        <p class="card-text">Track your progress and optimize your study habits with detailed analytics.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %} 
